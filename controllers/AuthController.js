@@ -10,6 +10,9 @@ class AuthController {
     const base64AuthString = authHeader.split(' ')[1] || '';
     const credentials = Buffer.from(base64AuthString, 'base64').toString('ascii');
     const [email, password] = credentials.split(':');
+    if (!email || !password) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     const hashedPassword = crypto.createHash('sha1').update(password).digest('hex');
 
