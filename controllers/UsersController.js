@@ -1,5 +1,7 @@
 import crypto from 'crypto';
+import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
 class UsersController {
   // handles logic for POST /users route
@@ -15,6 +17,25 @@ class UsersController {
     const result = await dbClient.db.collection('users').insertOne({ email, password: hashedPassword });
 
     return res.status(201).json({ id: result.insertedId, email });
+  }
+
+  // handles logic for GET /users/me route
+  static async getMe(req, res) {
+    // hearders are parsed to all lower-case
+    const token = req.headers['x-token'] || '';
+    const key = `auth_${token}`;
+    const id = await redisClient.get(key);
+    if (id) {
+      const _id = new ObjectId(id);
+      const user = await dbClient.db.collection('users').findOne({ _id });
+      if (user) {
+        res.status(200).json({ id, email: user.email });
+      } else {
+        res.status(401).json({ error: 'Unauthorized' });
+      }
+    } else {
+      res.status(401).json({ error: 'Unauthorized' });
+    }
   }
 }
 
