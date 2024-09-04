@@ -83,7 +83,14 @@ class FilesController {
       return res.status(404).json({ error: 'Not found' });
     }
 
-    return res.status(200).json(file);
+    return res.status(200).json({
+      id: file._id,
+      userId: file.userId,
+      name: file.name,
+      type: file.type,
+      isPublic: file.isPublic,
+      parentId: file.parentId || 0,
+    });
   }
 
   // Handles logic for the GET /files route
@@ -106,7 +113,16 @@ class FilesController {
       .limit(limit)
       .toArray();
 
-    return res.status(200).json(files);
+    const formattedFiles = files.map((file) => ({
+      id: file._id,
+      userId: file.userId,
+      name: file.name,
+      type: file.type,
+      isPublic: file.isPublic,
+      parentId: file.parentId || 0,
+    }));
+
+    return res.status(200).json(formattedFiles);
   }
 }
 
