@@ -1,4 +1,4 @@
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 // class to represent a MongoDB database connection
 class DBClient {
@@ -53,6 +53,34 @@ class DBClient {
       console.error('Error fetching file count: ', err);
     }
     return 0;
+  }
+
+  /**
+   * retrieves a user from Mongodb db users collection based on their id
+   * @param {string} id string representation of the user unique _id object
+   * @returns {user} returns a user object
+   */
+  async getUserById(id) {
+    if (id) {
+      const _id = new ObjectId(id);
+      const user = await this.db.collection('users').findOne({ _id });
+      if (user) return user;
+    }
+    return null;
+  }
+
+  /**
+   * retrieves a file from Mongodb db files collection based on their id
+   * @param {string} id string representation of the file unique _id object
+   * @returns {user} returns a file object
+   */
+  async getFileById(id) {
+    if (id) {
+      const _id = new ObjectId(id);
+      const file = await this.db.collection('files').findOne({ _id });
+      if (file) return file;
+    }
+    return null;
   }
 }
 
