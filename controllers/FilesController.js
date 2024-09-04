@@ -113,6 +113,7 @@ class FilesController {
       .limit(limit)
       .toArray();
 
+    // can use agregate instead.
     const formattedFiles = files.map((file) => ({
       id: file._id,
       userId: file.userId,
