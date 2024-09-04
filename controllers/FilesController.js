@@ -157,7 +157,7 @@ class FilesController {
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
     const IdObject = new ObjectId(req.params.id);
-    const IdObject = new ObjectId(req.params.id);
+    const newValue = { $set: { isPublic: false } };
     const options = { returnOriginal: false };
 
     await dbClient.db.collection('files')
