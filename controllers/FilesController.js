@@ -149,7 +149,7 @@ class FilesController {
   }
 
   // handles logic for PUT /files/:id/unpublish route
-  static async putUnPublish(req, res) {
+  static async putUnpublish(req, res) {
     const token = req.headers['x-token'] || '';
     const key = `auth_${token}`;
     const id = await redisClient.get(key);
