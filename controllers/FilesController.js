@@ -67,6 +67,47 @@ class FilesController {
       parentId: parentId || 0,
     });
   }
+
+  // Handles logic for the GET /files/:id route
+  static async getShow(req, res) {
+    const token = req.headers['x-token'] || '';
+    const key = `auth_${token}`;
+    const id = await redisClient.get(key);
+    const user = await dbClient.getUserById(id);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const fileId = req.params.id;
+    const file = await dbClient.getFileById(fileId);
+
+    if (!file || file.userId.toString() !== user._id.toString()) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    return res.status(200).json(file);
+  }
+
+  // Handles logic for the GET /files route
+  static async getIndex(req, res) {
+    const token = req.headers['x-token'] || '';
+    const key = `auth_${token}`;
+    const id = await redisClient.get(key);
+    const user = await dbClient.getUserById(id);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const query = req.query.parentId ?
+     { userId: user._id, parentId: new ObjectId(req.query.parentId) } : { userId: user._id };
+    const page = parseInt(req.query.page, 10) || 0;
+    const limit = 20; // Maximum items per page
+    const skip = page * limit;
+
+    const files = await dbClient.db.collection('files')
+      .find(query)
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    return res.status(200).json(files);
+  }
 }
 
 module.exports = FilesController;
