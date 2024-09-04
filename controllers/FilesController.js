@@ -94,8 +94,8 @@ class FilesController {
     const user = await dbClient.getUserById(id);
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-    const query = req.query.parentId ?
-     { userId: user._id, parentId: new ObjectId(req.query.parentId) } : { userId: user._id };
+    const query = req.query.parentId
+      ? { userId: user._id, parentId: new ObjectId(req.query.parentId) } : { userId: user._id };
     const page = parseInt(req.query.page, 10) || 0;
     const limit = 20; // Maximum items per page
     const skip = page * limit;
