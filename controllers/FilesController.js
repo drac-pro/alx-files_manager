@@ -125,6 +125,50 @@ class FilesController {
 
     return res.status(200).json(formattedFiles);
   }
+
+  // Handles logic for the PUT /files/:id/publish route
+  static async putPublish(req, res) {
+    const token = req.headers['x-token'] || '';
+    const key = `auth_${token}`;
+    const id = await redisClient.get(key);
+    const user = await dbClient.getUserById(id);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const IdObject = new ObjectId(req.params.id);
+    const newValue = { $set: { isPublic: true } };
+    const options = { returnOriginal: false };
+
+    await dbClient.db.collection('files')
+      .findOneAndUpdate({ _id: IdObject, userId: user._id }, newValue, options, (err, file) => {
+        if (!file.lastErrorObject.updatedExisting) {
+          return res.status(404).json({ error: 'Not found' });
+        }
+        return res.status(200).json(file.value);
+      });
+    return null;
+  }
+
+  // handles logic for PUT /files/:id/unpublish route
+  static async putUnPublish(req, res) {
+    const token = req.headers['x-token'] || '';
+    const key = `auth_${token}`;
+    const id = await redisClient.get(key);
+    const user = await dbClient.getUserById(id);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+    const IdObject = new ObjectId(req.params.id);
+    const IdObject = new ObjectId(req.params.id);
+    const options = { returnOriginal: false };
+
+    await dbClient.db.collection('files')
+      .findOneAndUpdate({ _id: IdObject, userId: user._id }, newValue, options, (err, file) => {
+        if (!file.lastErrorObject.updatedExisting) {
+          return res.status(404).json({ error: 'Not found' });
+        }
+        return res.status(200).json(file.value);
+      });
+    return null;
+  }
 }
 
 module.exports = FilesController;
