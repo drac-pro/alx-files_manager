@@ -1,9 +1,12 @@
 import { promises as fs } from 'fs';
+import Queue from 'bull';
 import mime from 'mime-types';
 import { ObjectId } from 'mongodb';
 import { v4 as uuid4 } from 'uuid';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+
+const fileQueue = new Queue('thumbnail generator');
 
 class FilesController {
   // handles logic for the POST /files route
@@ -59,6 +62,11 @@ class FilesController {
     fileData.localPath = fileName;
 
     const result = await files.insertOne(fileData);
+
+    if (type === 'image') {
+      fileQueue.add({ userId: user._id, fileId: result.insertedId });
+    }
+
     return res.status(201).json({
       id: result.insertedId,
       userId: user._id,
@@ -187,8 +195,14 @@ class FilesController {
 
     if (file.type === 'folder') return res.status(400).json({ error: "A folder doesn't have content" });
     try {
-      await fs.access(file.localPath);
-      const data = await fs.readFile(file.localPath);
+      let filePath = file.localPath;
+      const { size } = req.query;
+      if (size) {
+        filePath = `${file.localPath}_${size}`;
+      }
+
+      await fs.access(filePath);
+      const data = await fs.readFile(filePath);
       const contentType = mime.contentType(file.name);
       return res.header('Content-Type', contentType).status(200).send(data);
     } catch (error) {
